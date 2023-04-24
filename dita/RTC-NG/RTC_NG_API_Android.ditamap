@@ -111,7 +111,7 @@
             <topicref keyref="setDualStreamModeEx" toc="no"/>
             <topicref keyref="setRemoteVideoStreamTypeEx" toc="no"/>
             <topicref keyref="setRemoteVideoSubscriptionOptionsEx" toc="no"/>
-            <topicref keyref="setRemoteRenderModeEx" toc="no"/>
+            <topicref keyref="setRemoteRenderModeEx2" toc="no"/>
             <topicref keyref="setRemoteVoice3DPositionEx" toc="no" props="hide"/>
             <topicref keyref="setRemoteVoicePositionEx" toc="no"/>
             <topicref keyref="setSubscribeAudioBlocklistEx" toc="no"/>
@@ -394,6 +394,7 @@
             <topicref keyref="getVideoFormatPreference" toc="no"/>
             <topicref keyref="getVideoFrameProcessMode" toc="no"/>
             <topicref keyref="onCaptureVideoFrame" toc="no"/>
+            <topicref keyref="onFrame_IVideoFrameObserver" toc="no"/>            
             <topicref keyref="onMediaPlayerVideoFrame" toc="no" props="hide"/>
             <topicref keyref="onPreEncodeVideoFrame" toc="no"/>
             <topicref keyref="onPreEncodeScreenVideoFrame" toc="no"/>
@@ -479,7 +480,6 @@
             <topicref keyref="onPlayerSrcInfoChanged" toc="no"/>
             <topicref keyref="onPositionChanged" toc="no"/>
             <topicref keyref="onPreloadEvent" toc="no"/>
-            <topicref keyref="onFrame_IVideoFrameObserver" toc="no"/>
         </topicref>
         <topicref href="API/toc_drm.dita" chunk="to-content" props="cn">
             <topicref keyref="getCaches" toc="no"/>
