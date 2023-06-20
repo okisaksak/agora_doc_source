@@ -134,7 +134,7 @@ int agora_iot_fw_info_update(agora_iot_handle_t handle, const agora_iot_device_f
 ### agora_iot_send_rtm
 
 ```c
-int agora_iot_send_rtm(agora_iot_handle_t handle, const char *peer_uid, uint32_t msg_id, const void *msg, size_t msg_len);
+int agora_iot_send_rtm(agora_iot_handle_t handle, const char *peer_id, uint32_t msg_id, const void *msg, size_t msg_len);
 ```
 
 发送 RTM 云信令消息。最高发送频率为每秒钟 60 次。
@@ -142,9 +142,10 @@ int agora_iot_send_rtm(agora_iot_handle_t handle, const char *peer_uid, uint32_t
 | 参数 | 描述 |
 | --- | --- |
 | [in] `handle` | [agora_iot_init](#agora_iot_init) 返回的 SDK 句柄。详见 [agora_iot_handle_t](agora_iot_base#agora_iot_handle_t)。 |
-| [in] `peer_uid` |  对端的 RTM 云信令用户 ID。   |
+| [in] `peer_id` |  对端的 RTM 云信令用户 ID。   |
+| [in] `msg_id` |  消息 ID。<div class="alert note">该参数不能为 0。</div>   |
 | [in] `msg` |  消息内容。   |
-| [in] `peer_uid` |  消息长度。   |
+| [in] `msg_len` |  消息长度，支持至多 4096 字节。   |
 
 #### 返回
 
@@ -267,6 +268,7 @@ typedef enum {
   AGO_VIDEO_DATA_TYPE_YUV420 = 0,
   AGO_VIDEO_DATA_TYPE_H264 = 1,
   AGO_VIDEO_DATA_TYPE_JPEG = 2,
+  AGO_VIDEO_DATA_TYPE_H265 = 3,
   AGO_AUDIO_DATA_TYPE_PCM = 10,
   AGO_AUDIO_DATA_TYPE_OPUS = 11,
   AGO_AUDIO_DATA_TYPE_G711A = 12,
@@ -282,6 +284,7 @@ typedef enum {
 | `AGO_VIDEO_DATA_TYPE_YUV420` | 0：YUV420 |
 | `AGO_VIDEO_DATA_TYPE_H264` | 1：H.264 |
 | `AGO_VIDEO_DATA_TYPE_JPEG` | 2：JPEG |
+| `AGO_VIDEO_DATA_TYPE_H265` | 3：H.265 |
 | `AGO_AUDIO_DATA_TYPE_PCM` | 10：PCM |
 | `AGO_AUDIO_DATA_TYPE_OPUS` | 11：Opus |
 | `AGO_AUDIO_DATA_TYPE_G711A` | 12：G711A |
@@ -302,6 +305,7 @@ typedef struct {
   bool is_key_frame;
   uint8_t *video_buffer;
   uint32_t video_buffer_size;
+  uint8_t fps;
 } ago_video_frame_t;
 ```
 
@@ -311,6 +315,7 @@ typedef struct {
 | `is_key_frame` | 该帧是否是关键帧。 <ul><li>true: 该帧是关键帧。</li><li>false: 该帧不是关键帧。</li></ul> |
 | `video_buffer` | 视频帧缓冲区。 |
 | `video_buffer_size` | 视频帧缓冲区大小。 |
+| `fps` | 视频帧率。 |
 
 <a id="ago_audio_frame_t"></a>
 
@@ -344,6 +349,7 @@ typedef struct agora_iot_rtc_callback {
   void (*cb_receive_video_frame)(ago_video_frame_t *frame);
   void (*cb_key_frame_requested)(void);
   void (*cb_target_bitrate_changed)(uint32_t target_bps);
+  void (*cb_audio_muted_changed)(bool is_muted);
 } agora_iot_rtc_callback_t;
 ```
 
@@ -386,6 +392,16 @@ SDK 音视频事件回调。
 | 参数 | 描述 |
 | --- | --- |
 | [in] `target_bps` | SDK 推荐你使用的码率 (bps)。 |
+
+#### cb_audio_muted_changed
+
+在客户端停止或恢复发布本地音频流时触发。
+
+SDK 仅支持一个设备端同时和一个客户端进行通话，你可以通过该回调判断该客户端是否在发布音频流，从而处理你的业务逻辑。例如，如果设备端和多个客户端在一个频道中，设备端和客户端 A 进行通话，那么客户端 A 停止发布音频流时，你可以添加业务逻辑让设备端和正在发布音频流的客户端 B 通话。
+
+| 参数 | 描述 |
+| --- | --- |
+| [in] `is_muted` | 客户端是否停止发布本地音频流：<li>`true`: 停止发布</li><li>`false`: 恢复发布</li> |
 
 <a id="ago_audio_codec_type_e"></a>
 
@@ -438,15 +454,15 @@ typedef struct _agora_iot_audio_config {
 
 ```c
 typedef struct agora_iot_device_fw_info {
-  char fw_wifi_ver[16];
-  char fw_mcu_ver[16];
+  char fw_wifi_ver[AG0_OTA_VERSION_LENGTH_MAX];
+  char fw_mcu_ver[AG0_OTA_VERSION_LENGTH_MAX];
 } agora_iot_device_fw_info_t;
 ```
 
 | 参数 | 描述 |
 | --- | --- |
-| `fw_wifi_ver` | WiFi 固件版本。 |
-| `fw_mcu_ver` | MCU 固件版本。|
+| `fw_wifi_ver` | WiFi 固件版本。字符长度至多为 50 字节。 |
+| `fw_mcu_ver` | MCU 固件版本。字符长度至多为 50 字节。|
 
 <a id="agora_fw_type_e"></a>
 ### agora_fw_type_e
@@ -693,6 +709,7 @@ typedef struct agora_iot_config {
   bool disable_rtc_log;
 	agora_iot_log_level_e log_level;
   uint32_t max_possible_bitrate;
+  uint32_t min_possible_bitrate;
   bool enable_audio_config;
   agora_iot_audio_config_t audio_config;
 
@@ -719,7 +736,8 @@ typedef struct agora_iot_config {
 | `rtc_cb` | 音视频传输事件回调。详见 [agora_iot_rtc_callback_t](#agora_iot_rtc_callback_t) 结构体。 |
 | `disable_rtc_log` | 是否关闭日志。 <ul><li>true：关闭日志。</li><li>false：开启日志。</li></ul>|
 | `log_level` | 设置日志等级。详见 [agora_iot_log_level_e](#agora_iot_log_level_e)。<div class="alert note">该参数仅在 <code>disable_rtc_log</code> 为 <code>false</code> 时生效。</div> |
-| `max_possible_bitrate` | 可能出现的最大码率（bps）。 |
+| `max_possible_bitrate` | 带宽探测的最大码率（bps）。 |
+| `min_possible_bitrate` | 带宽探测的最小码率（bps）。 |
 | `enable_audio_config` | 是否开启音频配置。 <ul><li>true：开启音频配置。你可以通过 `audio_config` 参数配置音频。</li><li>false：关闭音频配置。`audio_config` 参数的设置无效。</li></ul>|
 | `audio_config` | 音频配置。详见 [agora_iot_audio_config_t](#agora_iot_audio_config_t) 结构体。 |
 | `slave_server_url` | SDK 使用的 AWS OpenAPI 服务的主机域名。你可以在声网灵隼控制台的**应用配置>>开发者选项>>呼叫服务>>Slave Server URL** 处获取。详见[开通并配置声网灵隼服务](/cn/iot-apaas/enable_agora_link)。 |
@@ -1319,7 +1337,7 @@ typedef union {
 | `dp_int` | 整数类型的值。 |
 | `dp_bool` | 布尔类型的值。 |
 | `dp_enum` | 枚举类型的值。 |
-| `dp_str` | 字符串类型的值。 |
+| `dp_str` | 字符串类型的值。 <div class="alert note">SDK 不会自动释放该参数分配的内存。为避免内存泄露，你需要手动管理内存。</div> |
 
 <a id="agora_dp_info_t"></a>
 ### agora_dp_info_t
@@ -1354,7 +1372,7 @@ typedef void (*on_dp_query_callback)(agora_dp_info_t *info, void *args);
 
 | 参数 | 描述 |
 | --- | --- |
-| [in] `info` | 属性信息。详见 [agora_dp_info_t](#agora_dp_info_t)。你需要在此参数中传入本地属性的信息。 |
+| [in/out] `info` | 属性信息。详见 [agora_dp_info_t](#agora_dp_info_t)。你需要在此参数中传入本地属性的信息。 |
 | [in] `args` | 回调参数。通过 [agora_iot_dp_register_dp_query_handler](#agora_iot_dp_register_dp_query_handler) 传入。 |
 
 <a id="on_dp_cmd_callback"></a>
@@ -1462,7 +1480,7 @@ int agora_iot_file_player_stop(file_player_handle_t handle);
 ### agora_iot_file_player_push_video_frame
 
 ```c
-int agora_iot_file_player_push_video_frame(file_player_handle_t handle, agora_iot_file_video_t *frame);
+int agora_iot_file_player_push_video_frame(file_player_handle_t handle, ago_video_frame_t *frame);
 ```
 
 发送视频帧到本地回放频道。
@@ -1476,7 +1494,7 @@ int agora_iot_file_player_push_video_frame(file_player_handle_t handle, agora_io
 | 参数          | 描述                                                         |
 | :------------ | :----------------------------------------------------------- |
 | [in] `handle` | 文件播放器句柄。你可以通过 [agora_iot_file_player_start](#agora_iot_file_player_start) 获取。 |
-| [in] `frame`  | 待发送的视频帧信息，详见 [agora_iot_file_video_t](#agora_iot_file_video_t)。          |
+| [in] `frame`  | 待发送的视频帧信息，详见 [ago_video_frame_t](#ago_video_frame_t)。          |
 
 #### 返回
 
@@ -1486,7 +1504,7 @@ int agora_iot_file_player_push_video_frame(file_player_handle_t handle, agora_io
 ### agora_iot_file_player_push_audio_frame
 
 ```c
-int agora_iot_file_player_push_audio_frame(file_player_handle_t handle, agora_iot_file_audio_t *frame);
+int agora_iot_file_player_push_audio_frame(file_player_handle_t handle, ago_audio_frame_t *frame);
 ```
 
 发送音频帧到本地回放频道。
@@ -1500,7 +1518,7 @@ int agora_iot_file_player_push_audio_frame(file_player_handle_t handle, agora_io
 | 参数          | 描述                                                         |
 | :------------ | :----------------------------------------------------------- |
 | [in] `handle` | 文件播放器句柄。你可以通过 [agora_iot_file_player_start](#agora_iot_file_player_start) 获取。 |
-| [in] `frame`  | 待发送的音频帧信息，详见 [agora_iot_file_audio_t](#agora_iot_file_audio_t)。          |
+| [in] `frame`  | 待发送的音频帧信息，详见 [ago_audio_frame_t](#ago_audio_frame_t)。          |
 
 #### 返回
 
@@ -1515,8 +1533,8 @@ int agora_iot_file_player_push_audio_frame(file_player_handle_t handle, agora_io
 ```c
 typedef struct agora_iot_file_player_callback
 {
-  void (*cb_start_push_frame)(void);
-  void (*cb_stop_push_frame)(void);
+  void (*cb_start_push_frame)(const char *channel_name);
+  void (*cb_stop_push_frame)(const char *channel_name);
 } agora_iot_file_player_callback_t;
 ```
 
@@ -1527,66 +1545,19 @@ typedef struct agora_iot_file_player_callback
 
 调用 [agora_iot_file_player_start](#agora_iot_file_player_start) 成功创建本地回放频道时，SDK 会触发该回调。此时，你可以调用 [agora_iot_file_player_push_audio_frame](#agora_iot_file_player_push_audio_frame) 或 [agora_iot_file_player_push_video_frame](#agora_iot_file_player_push_video_frame) 方法发送音频或视频数据到本地回放频道。
 
+**参数**
+
+| 参数          | 描述                                                         |
+| :------------ | :----------------------------------------------------------- |
+| `channel_name` | 本地回放的频道名称。 |
+
 <a name="cb_stop_push_frame"></a>
 #### cb_stop_push_frame
 
 调用 [agora_iot_file_player_stop](#agora_iot_file_player_stop) 成功销毁本地回放频道时，SDK 会触发该回调。此时，你需要停止调用 [agora_iot_file_player_push_audio_frame](#agora_iot_file_player_push_audio_frame) 或 [agora_iot_file_player_push_video_frame](#agora_iot_file_player_push_video_frame) 方法。
 
-<a name="agora_iot_file_video_e"></a>
-### agora_iot_file_video_e
+**参数**
 
-```c
-typedef enum {
-  FILE_VIDEO_H264 = 0,
-  FILE_VIDEO_JPEG,
-} agora_iot_file_video_e;
-```
-
-视频帧的编码格式。
-
-| 参数              | 描述                                                  |
-| :---------------- | :---------------------------------------------------- |
-| `FILE_VIDEO_H264`      | 0：H.264                                        |
-| `FILE_VIDEO_JPEG`  | JPEG                                          |
-
-<a name="agora_iot_file_video_t"></a>
-### agora_iot_file_video_t
-
-```c
-typedef struct {
-  uint8_t  *frame;
-  size_t   frame_len;
-  uint32_t codec;
-  bool     keyframe;
-  uint32_t frame_rate;
-} agora_iot_file_video_t;
-```
-
-待发送的视频帧信息。
-
-| 参数              | 描述                                                  |
-| :---------------- | :---------------------------------------------------- |
-| [in] `frame`      | 视频帧数据。                                          |
-| [in] `frame_len`  | 视频帧长度。                                          |
-| [in] `codec`      | 视频帧的编码格式，详见 [agora_iot_file_video_e](#agora_iot_file_video_e)。     |
-| [in] `keyframe`   | 是否为关键帧：<li>`true`：是关键帧。</li><li>`false`：不是关键帧。</li> |
-| [in] `frame_rate` | 帧率（fps）。                                         |
-
-<a name="agora_iot_file_audio_t"></a>
-### agora_iot_file_audio_t
-
-```c
-typedef struct {
-  uint8_t  *frame;
-  size_t   frame_len;
-} agora_iot_file_audio_t;
-```
-
-待发送的音频帧信息。
-
-<div class="alert note">仅支持推送单声道、采样率 16000 Hz、大小为 16 bit 的 PCM 数据，数据发送间隔为 20 ms。</div>
-
-| 参数             | 描述                                  |
-| :--------------- | :------------------------------------ |
-| [in] `frame`     | 音频帧数据。                          |
-| [in] `frame_len` | 音频帧长度（Byte）。仅支持 640 Byte。 |
+| 参数          | 描述                                                         |
+| :------------ | :----------------------------------------------------------- |
+| `channel_name` | 本地回放的频道名称。 |
