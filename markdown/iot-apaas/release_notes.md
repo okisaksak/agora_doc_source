@@ -14,37 +14,41 @@ SDK 在 1.5.0 版本中重构了呼叫业务，对 SDK 版本之间的互通有�
 
 #### 新增特性
 
-**H.265 视频格式**
+**H.265 视频格式（C）**
 
 该版本支持在设备端推送 H.265 格式的视频到云存储，你可以在调用 `agora_iot_cloud_record_start` 方法时设置 `video_type` 为 `AGO_VIDEO_DATA_TYPE_H265`。
 
-**音频流发布状态**
+**音频流发布状态（C）**
 
 该版本在设备端的 `agora_iot_rtc_callback` 中新增 `cb_audio_muted_changed` 回调，报告通话中的客户端是否在发布音频流。你可以通过该回调处理你的业务逻辑，例如，如果设备端和多个客户端在一个频道中，设备端和客户端 A 在通话，那么客户端 A 停止发布音频流时，你可以添加业务逻辑让设备端和正在发布音频流的客户端 B 通话。
 
+**注册来电通知（iOS）**
+
+该版本在 register 方法中新增 memberState 参数
+
 #### 改进
 
-**云存储**
+**云存储（C）**
 
 为提升云存储的易用性，该版本在设备端改进了以下内容：
 - 在 `agora_iot_cloud_record_start` 方法中删除 `record_id` 和 `end_time` 参数，并在 SDK 内部添加了对应状态参数的处理逻辑，你不再需要自行处理。
 - 在 `ago_video_frame_t` 中增加 `fps` 参数。你可以通过该参数实现视频预录制，从而缩短生成录制视频的时间。
 
-**24 小时连续通话**
+**24 小时连续通话（C）**
 
 该版本将单个视频通话的最大时长由 1 小时升级至 24 小时，超过上限后 SDK 会自动结束通话。
 
-**本地回放**
+**本地回放（C）**
 
 该版本扩展了本地回放的以下能力：
 - 为支持同一设备的多个客户端同时观看不同的视频回放文件，该版本在设备端 `agora_iot_file_player_callback` 类的 `cb_start_push_frame` 和 `cb_stop_push_frame` 回调中新增 `channel_name` 参数。
 - 为支持发送多种格式的音视频帧到本地回放频道，该版本删除了 `agora_iot_file_video_t`、`agora_iot_file_audio_t` 和 `agora_iot_file_video_e` 数据类型，并将 `agora_iot_file_player_push_video_frame` 和 `agora_iot_file_player_push_audio_frame` 方法的 `frame` 参数分别改为 `ago_video_frame_t` 和 `ago_audio_frame_t` 类型。
 
-**最小带宽探测**
+**最小带宽探测（C）**
 
 该版本在 `agora_iot_config_t` 中新增 `min_possible_bitrate` 参数，你可以设置带宽探测的最小码率。// TODO 这里的设置和 cb_target_bitrate_changed 有什么关系？
 
-**DP 属性点**
+**DP 属性点（C）**
 
 该版本支持使用数组指针赋值 string 类型的 DP 属性点，你可以通过 `agora_dp_value_t` 的 `dp_str` 参数实现。同时，SDK 将不再自动释放 `dp_str` 参数的内存，你需要手动管理内存以避免内存泄露。
 

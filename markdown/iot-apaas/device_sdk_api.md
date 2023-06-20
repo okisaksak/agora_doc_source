@@ -1549,7 +1549,7 @@ typedef struct agora_iot_file_player_callback
 
 | 参数          | 描述                                                         |
 | :------------ | :----------------------------------------------------------- |
-| `channel_name` | 本地回放的频道名称。 |
+| `channel_name` | 本地回放的频道名称。通过该参数，你可以在业务逻辑中实现在客户端同时观看不同的视频回放文件。 |
 
 <a name="cb_stop_push_frame"></a>
 #### cb_stop_push_frame
@@ -1560,4 +1560,4 @@ typedef struct agora_iot_file_player_callback
 
 | 参数          | 描述                                                         |
 | :------------ | :----------------------------------------------------------- |
-| `channel_name` | 本地回放的频道名称。 |
+| `channel_name` | 本地回放的频道名称。通过该参数，你可以在业务逻辑中实现在客户端同时观看不同的视频回放文件。 |
