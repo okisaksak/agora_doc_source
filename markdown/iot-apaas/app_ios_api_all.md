@@ -20,6 +20,21 @@
 
 SDK 引擎接口。
 
+<a name="getmqttisconnected"></a>
+
+#### getMqttIsConnected
+
+```swift
+func getMqttIsConnected() -> Bool
+```
+
+获取当前 MQTT 模块的连接状态。
+
+**返回**
+
+- `true`: 已连接。
+- `false`: 已断开连接。
+
 <a name="initialize"></a>
 
 #### initialize
@@ -113,30 +128,6 @@ var notificationMgr: INotificationMgr{get}
 ## IAccountMgr
 
 账号管理接口。
-
-<a name="accountregister"></a>
-
-#### register
-
-```swift
-func register(account: String, password: String,code: String, email:String?, phone:String?, result:@escaping (Int,String)->Void)
-```
-
-注册一个新账号。
-
-**参数**
-
-| 参数       | 描述                                                         |
-| ---------- | ------------------------------------------------------------ |
-| `account`  | 账号 ID，需要为邮箱地址或手机号码。                          |
-| `password` | 账号密码。                                                   |
-| `code`     | 验证码，可以通过 [getCode](#getcode) 或 [getSms](#getsms) 方法获取。 |
-| `email`    | 邮箱地址。邮箱地址和手机号码必须提供一个。                   |
-| `phone`    | 手机号码。需要加上国区代码，如：中国需要加上“+86”。邮箱地址和手机号码必须提供一个。 |
-
-**返回**
-
-- 错误码，详见 [ErrCode](#errcode)。
 
 <a name="logout"></a>
 
@@ -248,12 +239,55 @@ func login(param:LoginParam,result:@escaping(Int,String)->Void)
 
 - 错误码，详见 [ErrCode](#errcode)。
 
+<a name="publickeyset"></a>
+
+#### publicKeySet
+
+```swift
+func publicKeySet(publicKey:String, _ result:@escaping (Int,String)->Void)
+```
+
+设置云存储视频加密的公钥。
+
+为加强云存储视频加密的安全性，你可以在应用层自行生成公钥、私钥及绑定逻辑等，再通过该方法将公钥传入 SDK。例如，只有 SDK 的公钥和你 app 的私钥都正确，用户才能查看加密视频。
+
+<div class="alert note"><li>该方法在登录前后均可调用。</li><li>声网不会保存你传入的公钥，你需要自行保存并管理。</li></div>
+
+**参数**
+
+| 参数  | 描述                                  |
+| :---- | :------------------------------------ |
+| `publicKey` | 待设置的公钥。// TODO 公钥的字符串长度是多少？ |
+
+**返回**
+
+- 错误码，详见 [ErrCode](#errcode)。
+
 
 <a name="callkitmgr"></a>
 
 ## ICallkitMgr
 
 呼叫系统管理接口。
+
+<a name="register"></a>
+
+#### register
+
+```swift
+func register(incoming: @escaping (String,String, ActionAck) -> Void,memberState:((MemberState,[UInt])->Void)?)
+```
+
+注册来电通知。
+
+通过该方法定义 `incoming` 和 `memberState` 回调函数后，如果你收到来电，SDK 会通过 `incoming` 和 `memberState` 回调通知你来电的设备、用户 ID 等相关信息。
+
+**参数**
+
+| 参数        | 描述                                             |
+| ----------- | ------------------------------------------------ |
+| `incoming`    | 来电设备的信息，包含以下内容：<li>来电设备的名称。</li><li>来电时附带的信息。</li><li>来电时产生的事件，详见 [ActionAck](#actionack)。</li>     |
+| `memberState` | 来电用户的信息，包含以下内容：<li>来电用户的状态，详见 [MemberState](#memberstate)。</li><li>来电用户的用户 ID。 |
 
 <a name="calldial"></a>
 
@@ -2578,11 +2612,11 @@ SDK 状态。
 | -------------- | ---------------------------------------------------- |
 | `NotReady`     | 登录成功，但还在初始化各个子模块中，处于未就绪状态。 |
 | `InitCallFail` | 登录成功后，初始化呼叫模块出错。                     |
-| `InitMqttFail` | 登录成功后，初始化 Mqtt 模块出错。                   |
+| `InitMqttFail` | 登录成功后，初始化 MQTT 模块出错。                   |
 | `InitPushFail` | 登录成功后，初始化推送模块出错。                     |
 | `AllReady`     | 登录成功后，初始化过程完毕，处于就绪状态。           |
-| `Reconnected`  | 登录成功后，Mqtt 重连成功。                          |
-| `Disconnected` | 登录成功后，Mqtt 断开连接。                          |
+| `Reconnected`  | 登录成功后，MQTT 重连成功。                          |
+| `Disconnected` | 登录成功后，MQTT 断开连接。                          |
 
 
 <a name="actionack"></a>

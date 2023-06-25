@@ -315,7 +315,7 @@ typedef struct {
 | `is_key_frame` | 该帧是否是关键帧。 <ul><li>true: 该帧是关键帧。</li><li>false: 该帧不是关键帧。</li></ul> |
 | `video_buffer` | 视频帧缓冲区。 |
 | `video_buffer_size` | 视频帧缓冲区大小。 |
-| `fps` | 视频帧率。 |
+| `fps` | 视频帧率。为确保云存储视频的播放速度与实际视频的播放速度一致，你需要根据视频的实际帧率实时调节该参数。 |
 
 <a id="ago_audio_frame_t"></a>
 
@@ -378,8 +378,6 @@ SDK 音视频事件回调。
 | 参数 | 描述 |
 | --- | --- |
 | [in] `frame` | 视频帧设置。详见 [ago_video_frame_t](#ago_video_frame_t)。 |
-
-在 SDK 接收到视频帧时触发。
 
 #### cb_key_frame_requested
 
@@ -736,7 +734,7 @@ typedef struct agora_iot_config {
 | `rtc_cb` | 音视频传输事件回调。详见 [agora_iot_rtc_callback_t](#agora_iot_rtc_callback_t) 结构体。 |
 | `disable_rtc_log` | 是否关闭日志。 <ul><li>true：关闭日志。</li><li>false：开启日志。</li></ul>|
 | `log_level` | 设置日志等级。详见 [agora_iot_log_level_e](#agora_iot_log_level_e)。<div class="alert note">该参数仅在 <code>disable_rtc_log</code> 为 <code>false</code> 时生效。</div> |
-| `max_possible_bitrate` | 带宽探测的最大码率（bps）。 |
+| `max_possible_bitrate` | 带宽探测的最大码率（bps）。如果实际可用带宽大于该参数的设定值， |
 | `min_possible_bitrate` | 带宽探测的最小码率（bps）。 |
 | `enable_audio_config` | 是否开启音频配置。 <ul><li>true：开启音频配置。你可以通过 `audio_config` 参数配置音频。</li><li>false：关闭音频配置。`audio_config` 参数的设置无效。</li></ul>|
 | `audio_config` | 音频配置。详见 [agora_iot_audio_config_t](#agora_iot_audio_config_t) 结构体。 |

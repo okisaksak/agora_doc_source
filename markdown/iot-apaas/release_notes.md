@@ -1,8 +1,8 @@
 ## 已知问题
 
-SDK 在 1.5.0 版本中重构了呼叫业务，对 SDK 版本之间的互通有以下影响：
-- 1.5.0 版本仅与 1.5.0 及以上版本互通。
-- 1.3.0 版本仅与 1.3.0 及以下版本互通。
+SDK 在 1.5.0 版本对呼叫功能进行了重构，由此对 SDK 版本之间的互通产生了以下影响：
+- 1.5.0 版本仅能与 1.5.0 及以上版本互通。
+- 1.3.0 版本仅能与 1.3.0 及以下版本互通。
 
 ## 1.5.0 版
 
@@ -10,47 +10,75 @@ SDK 在 1.5.0 版本中重构了呼叫业务，对 SDK 版本之间的互通有�
 
 #### 升级必看
 
-为提高弱网环境下呼叫出图成功率、缩短呼叫出图响应时间，该版本重构了呼叫业务，重构后的 SDK 无法与之前版本的 SDK 互通。如需将 SDK 升级至 1.5.0 版，请确保所有的设备端和客户端都进行升级。
+为提高弱网环境下呼叫出图成功率、缩短呼叫出图响应时间，该版本重构了呼叫功能。重构后的 SDK 无法与之前版本的 SDK 互通。如需将 SDK 升级至 1.5.0 版本，请确保所有的设备端和客户端都进行升级。
 
 #### 新增特性
 
-**H.265 视频格式（C）**
+**H.265 视频格式支持**
 
-该版本支持在设备端推送 H.265 格式的视频到云存储，你可以在调用 `agora_iot_cloud_record_start` 方法时设置 `video_type` 为 `AGO_VIDEO_DATA_TYPE_H265`。
+该版本新增了对 H.265 视频格式的支持。你可以在设备端调用 `agora_iot_cloud_record_start` 方法并将 `video_type` 设置为 `AGO_VIDEO_DATA_TYPE_H265`，从而将 H.265 格式的视频推送到云存储中。
 
-**音频流发布状态（C）**
+**音频流发布状态反馈**
 
-该版本在设备端的 `agora_iot_rtc_callback` 中新增 `cb_audio_muted_changed` 回调，报告通话中的客户端是否在发布音频流。你可以通过该回调处理你的业务逻辑，例如，如果设备端和多个客户端在一个频道中，设备端和客户端 A 在通话，那么客户端 A 停止发布音频流时，你可以添加业务逻辑让设备端和正在发布音频流的客户端 B 通话。
+该版本在设备端的 `agora_iot_rtc_callback` 中新增了 `cb_audio_muted_changed` 回调，报告通话中的客户端是否在发布音频流。你可以通过该回调处理你的业务逻辑，例如，如果设备端和多个客户端在一个频道中，当客户端 A 停止发布音频流时，你可以通过该回调通知设备端和正在发布音频流的客户端 B 继续通话。
 
-**注册来电通知（iOS）**
+**注册来电通知**
 
-该版本在 register 方法中新增 memberState 参数
+该版本在 iOS 客户端新增了 `register` 方法，你可以注册来电通知并监听 `incoming` 和 `memberState` 回调，获取来电的设备、用户 ID 等相关信息。
+
+**MQTT 连接状态反馈**
+
+为方便获取 MQTT 模块的连接状态，该版本在 Android 和 iOS 客户端上分别新增了 `getMqttIsConnected` 和 `isAwsMqttReady` 回调。
+
+**云存储视频加密公钥**
+
+该版本在客户端上新增了以下 API，用于加强云存储视频加密的安全性：
+- Android: `setPublicKey` 方法和 `onSetPublicKeyDone` 回调
+- iOS: `publicKeySet` 方法
+
+你可以在应用层自行生成公钥、私钥及绑定逻辑等，再通过该方法将公钥传入 SDK。例如，只有 SDK 的公钥和你 app 的私钥都正确，用户才能查看加密视频。
+
+**错误码**
+
+为方便排查问题，该版本新增如下错误码：
+
+- `XERR_FILE_NO_STREAM` (`-20009`)：文件里没有数据流。
+- `XERR_ACCOUNT_SET_PUBLICKEY` (`-30017`)：设置公钥失败。
+- `XERR_CALLKIT_CALLDEV_FAILURE` (`-40011`)：呼叫设备失败。
+- `XERR_CALLKIT_RTCTOKEN_FAILURE` (`-40012`)：生成 RTC Token 失败。
 
 #### 改进
 
-**云存储（C）**
+**云存储**
 
-为提升云存储的易用性，该版本在设备端改进了以下内容：
-- 在 `agora_iot_cloud_record_start` 方法中删除 `record_id` 和 `end_time` 参数，并在 SDK 内部添加了对应状态参数的处理逻辑，你不再需要自行处理。
-- 在 `ago_video_frame_t` 中增加 `fps` 参数。你可以通过该参数实现视频预录制，从而缩短生成录制视频的时间。
+为提升云存储的易用性，该版本在设备端进行了以下改进：
+- 删除了 `agora_iot_cloud_record_start` 方法中的 `record_id` 和 `end_time` 参数，并在 SDK 内部添加了对应状态参数的处理逻辑，因此你不再需要自行处理这些参数。
+- 在 `ago_video_frame_t` 中增加了 `fps` 参数。你可以通过该参数实现视频预录制，从而缩短生成录制视频的时间。
 
-**24 小时连续通话（C）**
+**24 小时连续通话**
 
 该版本将单个视频通话的最大时长由 1 小时升级至 24 小时，超过上限后 SDK 会自动结束通话。
 
-**本地回放（C）**
+**本地回放**
 
 该版本扩展了本地回放的以下能力：
 - 为支持同一设备的多个客户端同时观看不同的视频回放文件，该版本在设备端 `agora_iot_file_player_callback` 类的 `cb_start_push_frame` 和 `cb_stop_push_frame` 回调中新增 `channel_name` 参数。
 - 为支持发送多种格式的音视频帧到本地回放频道，该版本删除了 `agora_iot_file_video_t`、`agora_iot_file_audio_t` 和 `agora_iot_file_video_e` 数据类型，并将 `agora_iot_file_player_push_video_frame` 和 `agora_iot_file_player_push_audio_frame` 方法的 `frame` 参数分别改为 `ago_video_frame_t` 和 `ago_audio_frame_t` 类型。
 
-**最小带宽探测（C）**
+**最小带宽探测**
 
-该版本在 `agora_iot_config_t` 中新增 `min_possible_bitrate` 参数，你可以设置带宽探测的最小码率。// TODO 这里的设置和 cb_target_bitrate_changed 有什么关系？
+该版本在 `agora_iot_config_t` 中新增了 `min_possible_bitrate` 参数，你可以设置带宽探测的最小码率。// TODO 需写明和回调的关系
 
-**DP 属性点（C）**
+**DP 属性点**
 
 该版本支持使用数组指针赋值 string 类型的 DP 属性点，你可以通过 `agora_dp_value_t` 的 `dp_str` 参数实现。同时，SDK 将不再自动释放 `dp_str` 参数的内存，你需要手动管理内存以避免内存泄露。
+
+**音视频流录制**
+
+该版本在 Android 客户端中优化了开始录制的方法并新增了状态回调，具体如下：
+- 在 `talkingRecordStart` 方法中新增了 `outFilePath` 参数，你可以指定录制文件的存储路径。
+- 提供了 `isTalkingRecording` 回调，获取是否正在录制当前通话。
+- 提供了 `onRecordingError` 回调，报告录制失败的错误码。
 
 ## 1.3.0 版
 

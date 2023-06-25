@@ -1152,11 +1152,11 @@ SDK 状态。
 | -------------- | ---------------------------------------------------- |
 | `NotReady`     | 登录成功，但还在初始化各个子模块中，处于未就绪状态。 |
 | `InitCallFail` | 登录成功后，初始化呼叫模块出错。                     |
-| `InitMqttFail` | 登录成功后，初始化 Mqtt 模块出错。                   |
+| `InitMqttFail` | 登录成功后，初始化 MQTT 模块出错。                   |
 | `InitPushFail` | 登录成功后，初始化推送模块出错。                     |
 | `AllReady`     | 登录成功后，初始化过程完毕，处于就绪状态。           |
-| `Reconnected`  | 登录成功后，Mqtt 重连成功。                          |
-| `Disconnected` | 登录成功后，Mqtt 断开连接。                          |
+| `Reconnected`  | 登录成功后，MQTT 重连成功。                          |
+| `Disconnected` | 登录成功后，MQTT 断开连接。                          |
 
 <a name="rtcnetworkstatus"></a>
 
