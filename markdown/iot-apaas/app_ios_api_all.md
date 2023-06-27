@@ -249,15 +249,15 @@ func publicKeySet(publicKey:String, _ result:@escaping (Int,String)->Void)
 
 设置云存储视频加密的公钥。
 
-为加强云存储视频加密的安全性，你可以在应用层自行生成公钥、私钥及绑定逻辑等，再通过该方法将公钥传入 SDK。例如，只有 SDK 的公钥和你 app 的私钥都正确，用户才能查看加密视频。
+为加强云存储视频加密的安全性，你可以在应用层自行生成公钥、私钥，再通过该方法将公钥传入 SDK。例如，只有 SDK 的公钥和你 app 的私钥都正确，用户才能查看加密视频。
 
-<div class="alert note"><li>该方法在登录前后均可调用。</li><li>声网不会保存你传入的公钥，你需要自行保存并管理。</li></div>
+<div class="alert note">声网不会保存你传入的公钥，你需要自行保存并管理。</div>
 
 **参数**
 
 | 参数  | 描述                                  |
 | :---- | :------------------------------------ |
-| `publicKey` | 待设置的公钥。// TODO 公钥的字符串长度是多少？ |
+| `publicKey` | 待设置的公钥。 |
 
 **返回**
 
@@ -282,12 +282,14 @@ func register(incoming: @escaping (String,String, ActionAck) -> Void,memberState
 
 通过该方法定义 `incoming` 和 `memberState` 回调函数后，如果你收到来电，SDK 会通过 `incoming` 和 `memberState` 回调通知你来电的设备、用户 ID 等相关信息。
 
+声网推荐你在 [login](#login) 之后调用该方法。
+
 **参数**
 
 | 参数        | 描述                                             |
 | ----------- | ------------------------------------------------ |
-| `incoming`    | 来电设备的信息，包含以下内容：<li>来电设备的名称。</li><li>来电时附带的信息。</li><li>来电时产生的事件，详见 [ActionAck](#actionack)。</li>     |
-| `memberState` | 来电用户的信息，包含以下内容：<li>来电用户的状态，详见 [MemberState](#memberstate)。</li><li>来电用户的用户 ID。 |
+| `incoming`    | 来电设备的信息，包含以下内容：<li>第一个参数：来电设备的名称。</li><li>第二个参数：来电时附带的信息。</li><li>第三个参数：来电时产生的事件，详见 [ActionAck](#actionack)。</li>     |
+| `memberState` | 来电用户的信息，包含以下内容：<li>第一个参数：来电用户的状态，详见 [MemberState](#memberstate)。</li><li>第二个参数：来电用户的用户 ID。 |
 
 <a name="calldial"></a>
 

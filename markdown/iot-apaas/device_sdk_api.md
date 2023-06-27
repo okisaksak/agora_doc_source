@@ -385,7 +385,14 @@ SDK 音视频事件回调。
 
 #### cb_target_bitrate_changed
 
-在 SDK 侦测到网络带宽变化时触发。你需要将发送码率调整为 SDK 推荐的值。
+在 SDK 探测到网络带宽变化时触发。
+
+你需要根据 `target_bps` 参数的值实时调整发送码率。
+
+如果你在 [agora_iot_config](#agora_iot_config) 中设置了 `max_possible_bitrate` 和 `min_possible_bitrate` 参数，则 SDK 会遵循如下规则返回 `target_bps` 参数：
+
+- 当带宽检测到的实际码率大于 `max_possible_bitrate` 参数值或小于 `min_possible_bitrate` 参数值时，SDK 返回的 `target_bps` 参数值为 `max_possible_bitrate` 参数值或 `min_possible_bitrate`。
+- 当带宽检测到的实际码率介于 `max_possible_bitrate` 和 `min_possible_bitrate` 参数值之间时，SDK 返回的 `target_bps` 参数值为实际码率。
 
 | 参数 | 描述 |
 | --- | --- |
@@ -395,7 +402,7 @@ SDK 音视频事件回调。
 
 在客户端停止或恢复发布本地音频流时触发。
 
-SDK 仅支持一个设备端同时和一个客户端进行通话，你可以通过该回调判断该客户端是否在发布音频流，从而处理你的业务逻辑。例如，如果设备端和多个客户端在一个频道中，设备端和客户端 A 进行通话，那么客户端 A 停止发布音频流时，你可以添加业务逻辑让设备端和正在发布音频流的客户端 B 通话。
+如果你的业务中无需切换音频播放设备的工作模式，则无需监听该回调。
 
 | 参数 | 描述 |
 | --- | --- |
@@ -734,8 +741,8 @@ typedef struct agora_iot_config {
 | `rtc_cb` | 音视频传输事件回调。详见 [agora_iot_rtc_callback_t](#agora_iot_rtc_callback_t) 结构体。 |
 | `disable_rtc_log` | 是否关闭日志。 <ul><li>true：关闭日志。</li><li>false：开启日志。</li></ul>|
 | `log_level` | 设置日志等级。详见 [agora_iot_log_level_e](#agora_iot_log_level_e)。<div class="alert note">该参数仅在 <code>disable_rtc_log</code> 为 <code>false</code> 时生效。</div> |
-| `max_possible_bitrate` | 带宽探测的最大码率（bps）。如果实际可用带宽大于该参数的设定值， |
-| `min_possible_bitrate` | 带宽探测的最小码率（bps）。 |
+| `max_possible_bitrate` | 带宽探测的最大码率（bps）。该参数会影响 [cb_target_bitrate_changed](#cb_target_bitrate_changed) 回调报告的值。|
+| `min_possible_bitrate` | 带宽探测的最小码率（bps）。该参数会影响 [cb_target_bitrate_changed](#cb_target_bitrate_changed) 回调报告的值。 |
 | `enable_audio_config` | 是否开启音频配置。 <ul><li>true：开启音频配置。你可以通过 `audio_config` 参数配置音频。</li><li>false：关闭音频配置。`audio_config` 参数的设置无效。</li></ul>|
 | `audio_config` | 音频配置。详见 [agora_iot_audio_config_t](#agora_iot_audio_config_t) 结构体。 |
 | `slave_server_url` | SDK 使用的 AWS OpenAPI 服务的主机域名。你可以在声网灵隼控制台的**应用配置>>开发者选项>>呼叫服务>>Slave Server URL** 处获取。详见[开通并配置声网灵隼服务](/cn/iot-apaas/enable_agora_link)。 |
