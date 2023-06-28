@@ -28,7 +28,7 @@ SDK 引擎接口。
 func getMqttIsConnected() -> Bool
 ```
 
-获取当前 MQTT 模块的连接状态。
+获取当前 MQTT（消息队列遥测传输协议）模块的连接状态。
 
 **返回**
 

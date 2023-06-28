@@ -31,7 +31,7 @@ SDK 在 1.5.0 版本对呼叫功能进行了重构，由此对 SDK 版本之间�
 
 **3. MQTT 连接状态**
 
-为方便获取 MQTT 模块的连接状态，该版本在 Android 客户端新增了 `getMqttIsConnected` 回调。
+为方便获取 MQTT（消息队列遥测传输协议）模块的连接状态，该版本在 iOS 客户端新增了 `getMqttIsConnected` 方法。
 
 **4. 错误码**
 
@@ -48,7 +48,9 @@ SDK 在 1.5.0 版本对呼叫功能进行了重构，由此对 SDK 版本之间�
 
 为提升云存储的易用性，该版本在设备端进行了以下改进：
 - 删除了 `agora_iot_cloud_record_start` 方法中的 `record_id` 和 `end_time` 参数，并在 SDK 内部添加了对应状态参数的处理逻辑，因此你不再需要自行处理这些参数。
-- 在 `ago_video_frame_t` 中增加了 `fps` 参数。你可以通过该参数实现视频预录制，从而缩短生成录制视频的时间。
+- 在 `ago_video_frame_t` 中增加了 `fps` 参数。SDK 会根据该参数的设置调整推送视频的速度，从而实现视频预录制，不再依赖 `agora_iot_push_video_frame` 方法的调用时间戳。
+
+  <div class="alert note">只有在 <code>agora_iot_push_video_frame</code> 方法中设置 <code>push_type</code> 参数为 <code>AGO_AV_PUSH_TYPE_MASK_OSS</code> 时，<code>ago_video_frame_t</code> 中的 <code>fps</code> 参数才有效。</div>
 
 **2. 24 小时连续通话**
 
@@ -56,13 +58,13 @@ SDK 在 1.5.0 版本对呼叫功能进行了重构，由此对 SDK 版本之间�
 
 **3. 来电通知**
 
-该版本在 iOS 客户端的 `register` 方法中新增了 `incoming` 和 `memberState` 参数，你可以通过该参数获取来电的设备、用户 ID 等相关信息。
+该版本在 iOS 客户端的 `ICallKitMgr.register` 方法中新增了 `incoming` 和 `memberState` 参数，你可以通过该参数获取来电的设备、用户 ID 等相关信息。
 
 **4. 音视频流录制**
 
 该版本在 Android 客户端中优化了开始录制的方法并新增了状态回调，具体如下：
 - 在 `talkingRecordStart` 方法中新增了 `outFilePath` 参数，你可以指定录制文件的存储路径。
-- 提供了 `isTalkingRecording` 回调，获取是否正在录制当前通话。
+- 提供了 `isTalkingRecording` 方法，获取是否正在录制当前通话。
 - 提供了 `onRecordingError` 回调，报告录制失败的错误码。
 
 **5. DP 属性点**
@@ -73,11 +75,16 @@ SDK 在 1.5.0 版本对呼叫功能进行了重构，由此对 SDK 版本之间�
 
 该版本在设备端的 `agora_iot_config_t` 中新增了 `min_possible_bitrate` 参数，你可以设置带宽探测的最小码率。当带宽探测的实际码率比 `min_possible_bitrate` 参数的设置值低时，`cb_target_bitrate_changed` 回调会返回 `min_possible_bitrate` 参数的设置值。
 
-**7. 本地回放**
+**7. 实时消息**
+
+该版本在设备端将实时消息的长度扩展至 4096 字节，你可以通过 `agora_iot_send_rtm` 方法的 `msg_len` 参数进行设置。此外，该版本还把 `peer_uid` 参数改名为 `peer_id`。
+
+**8. 本地回放**
 
 该版本在设备端上扩展了本地回放的以下能力：
 - 为支持同一设备的多个客户端同时观看不同的视频回放文件，该版本在设备端 `agora_iot_file_player_callback` 类的 `cb_start_push_frame` 和 `cb_stop_push_frame` 回调中新增 `channel_name` 参数。
 - 为支持发送多种格式的音视频帧到本地回放频道，该版本删除了 `agora_iot_file_video_t`、`agora_iot_file_audio_t` 和 `agora_iot_file_video_e` 数据类型，并将 `agora_iot_file_player_push_video_frame` 和 `agora_iot_file_player_push_audio_frame` 方法的 `frame` 参数分别改为 `ago_video_frame_t` 和 `ago_audio_frame_t` 类型。
+
 
 ## 1.3.0 版
 

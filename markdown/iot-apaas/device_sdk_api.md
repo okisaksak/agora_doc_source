@@ -72,7 +72,7 @@ int agora_iot_logfile_config(agora_iot_handle_t handle, int size_per_file, int m
 ### agora_iot_push_video_frame
 
 ```c
-int agora_iot_push_video_frame(agora_iot_handle_t handle, ago_video_frame_t *frame);
+int agora_iot_push_video_frame(agora_iot_handle_t handle, ago_video_frame_t *frame, uint8_t push_type);
 ```
 
 发送视频帧。
@@ -83,6 +83,7 @@ int agora_iot_push_video_frame(agora_iot_handle_t handle, ago_video_frame_t *fra
 | --- | --- |
 | [in] `handle` | [agora_iot_init](#agora_iot_init) 返回的 SDK 句柄。详见 [agora_iot_handle_t](#agora_iot_handle_t)。 |
 | [in] `frame` | 视频帧配置。详见 [ago_video_frame_t](#ago_video_frame_t)。 |
+| [in] `push_type` | 发送视频帧的目标，支持的取值如下：<li>`AGO_AV_PUSH_TYPE_MASK_RTC(0x01)`: 发送视频帧到 RTC 频道。</li><li>`AGO_AV_PUSH_TYPE_MASK_OSS(0x02)`: 发送视频帧到云存储。</li> |
 
 #### 返回
 
@@ -92,7 +93,7 @@ int agora_iot_push_video_frame(agora_iot_handle_t handle, ago_video_frame_t *fra
 ### agora_iot_push_audio_frame
 
 ```c
-int agora_iot_push_audio_frame(agora_iot_handle_t handle, ago_audio_frame_t *frame);
+int agora_iot_push_audio_frame(agora_iot_handle_t handle, ago_audio_frame_t *frame, uint8_t push_type);
 ```
 
 发送音频帧。
@@ -103,6 +104,7 @@ int agora_iot_push_audio_frame(agora_iot_handle_t handle, ago_audio_frame_t *fra
 | --- | --- |
 | [in] `handle` | [agora_iot_init](#agora_iot_init) 返回的 SDK 句柄。详见 [agora_iot_handle_t](agora_iot_base#agora_iot_handle_t)。 |
 | [in] `frame` | 音频帧配置。详见 [ago_audio_frame_t](#ago_audio_frame_t)。 |
+| [in] `push_type` | 发送音频帧的目标，支持的取值如下：<li>`AGO_AV_PUSH_TYPE_MASK_RTC(0x01)`: 发送音频帧到 RTC 频道。</li><li>`AGO_AV_PUSH_TYPE_MASK_OSS(0x02)`: 发送音频帧到云存储。</li> |
 
 #### 返回
 
@@ -315,7 +317,7 @@ typedef struct {
 | `is_key_frame` | 该帧是否是关键帧。 <ul><li>true: 该帧是关键帧。</li><li>false: 该帧不是关键帧。</li></ul> |
 | `video_buffer` | 视频帧缓冲区。 |
 | `video_buffer_size` | 视频帧缓冲区大小。 |
-| `fps` | 视频帧率。为确保云存储视频的播放速度与实际视频的播放速度一致，你需要根据视频的实际帧率实时调节该参数。 |
+| `fps` | 视频帧率。为确保云存储视频的播放速度与实际视频的播放速度一致，你需要根据视频的实际帧率实时调节该参数。<div class="alert note">只有在 [`agora_iot_push_video_frame`](#agora_iot_push_video_frame) 方法中设置 `push_type` 参数为 `AGO_AV_PUSH_TYPE_MASK_OSS` 时，该参数才有效。</div> |
 
 <a id="ago_audio_frame_t"></a>
 
@@ -392,7 +394,7 @@ SDK 音视频事件回调。
 如果你在 [agora_iot_config](#agora_iot_config) 中设置了 `max_possible_bitrate` 和 `min_possible_bitrate` 参数，则 SDK 会遵循如下规则返回 `target_bps` 参数：
 
 - 当带宽检测到的实际码率大于 `max_possible_bitrate` 参数值或小于 `min_possible_bitrate` 参数值时，SDK 返回的 `target_bps` 参数值为 `max_possible_bitrate` 参数值或 `min_possible_bitrate`。
-- 当带宽检测到的实际码率介于 `max_possible_bitrate` 和 `min_possible_bitrate` 参数值之间时，SDK 返回的 `target_bps` 参数值为实际码率。
+- 当带宽检测到的实际码率处于 [`min_possible_bitrate`, `max_possible_bitrate`] 之间时，SDK 返回的 `target_bps` 参数值为实际码率。
 
 | 参数 | 描述 |
 | --- | --- |
@@ -1500,6 +1502,7 @@ int agora_iot_file_player_push_video_frame(file_player_handle_t handle, ago_vide
 | :------------ | :----------------------------------------------------------- |
 | [in] `handle` | 文件播放器句柄。你可以通过 [agora_iot_file_player_start](#agora_iot_file_player_start) 获取。 |
 | [in] `frame`  | 待发送的视频帧信息，详见 [ago_video_frame_t](#ago_video_frame_t)。          |
+
 
 #### 返回
 
